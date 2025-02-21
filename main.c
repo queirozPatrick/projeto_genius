@@ -51,6 +51,7 @@ void mostrar_sequencia();
 bool verificar_jogada(uint8_t cor);
 void atualizar_display(uint8_t nivel_atual, uint8_t indice_atual, bool game_over);
 void exibir_tela_inicial();
+void exibir_tela_instrucoes(); // Nova função para exibir as instruções
 
 // Função para exibir a tela inicial
 void exibir_tela_inicial() {
@@ -68,6 +69,26 @@ void exibir_tela_inicial() {
     
     // Aguarda 3 segundos
     sleep_ms(3000);
+}
+
+// Função para exibir a tela de instruções
+void exibir_tela_instrucoes() {
+    // Limpa o display
+    ssd1306_fill(&display, false);
+    
+    // Desenha o título
+    ssd1306_draw_string(&display, "Como Jogar:", 25, 0);
+    
+    // Desenha as instruções
+    ssd1306_draw_string(&display, "A Verde", 10, 16);
+    ssd1306_draw_string(&display, "B Azul", 10, 32);
+    ssd1306_draw_string(&display, "JoyPress Red", 10, 48);
+    
+    // Envia os dados para o display
+    ssd1306_send_data(&display);
+    
+    // Aguarda 5 segundos
+    sleep_ms(8000);
 }
 
 // Função para atualizar o display
@@ -107,6 +128,9 @@ int main() {
 
     // Exibe a tela inicial
     exibir_tela_inicial();
+
+    // Exibe a tela de instruções
+    exibir_tela_instrucoes();
 
     srand(time(NULL));
     gerar_sequencia();
