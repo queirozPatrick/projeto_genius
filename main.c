@@ -52,21 +52,38 @@ bool verificar_jogada(uint8_t cor);
 void atualizar_display(uint8_t nivel_atual, uint8_t indice_atual, bool game_over);
 void exibir_tela_inicial();
 void exibir_tela_instrucoes(); // Nova função para exibir as instruções
+void exibir_mensagem_centralizada(char *mensagem); // Nova função para mensagens centralizadas
+
+// Função para exibir mensagens centralizadas com borda
+void exibir_mensagem_centralizada(char *mensagem) {
+    // Limpa o display
+    ssd1306_fill(&display, false);
+
+    // Desenha a borda
+    desenhar_borda();
+
+    // Desenha a mensagem no centro da tela
+    ssd1306_draw_string(&display, mensagem, 25, ALTURA_DISPLAY / 2 - 8);
+
+    // Envia os dados para o display
+    ssd1306_send_data(&display);
+}
+
 
 // Função para exibir a tela inicial
 void exibir_tela_inicial() {
     // Limpa o display
     ssd1306_fill(&display, false);
-    
+
     // Desenha a borda
     desenhar_borda();
-    
+
     // Desenha o nome do jogo no centro da tela
     ssd1306_draw_string(&display, "Genius Game", 25, ALTURA_DISPLAY / 2 - 8);
-    
+
     // Envia os dados para o display
     ssd1306_send_data(&display);
-    
+
     // Aguarda 3 segundos
     sleep_ms(3000);
 }
@@ -75,18 +92,18 @@ void exibir_tela_inicial() {
 void exibir_tela_instrucoes() {
     // Limpa o display
     ssd1306_fill(&display, false);
-    
+
     // Desenha o título
     ssd1306_draw_string(&display, "Como Jogar:", 25, 0);
-    
+
     // Desenha as instruções
     ssd1306_draw_string(&display, "A Verde", 10, 16);
     ssd1306_draw_string(&display, "B Azul", 10, 32);
     ssd1306_draw_string(&display, "JoyPress Red", 10, 48);
-    
+
     // Envia os dados para o display
     ssd1306_send_data(&display);
-    
+
     // Aguarda 5 segundos
     sleep_ms(8000);
 }
@@ -94,26 +111,27 @@ void exibir_tela_instrucoes() {
 // Função para atualizar o display
 void atualizar_display(uint8_t nivel_atual, uint8_t indice_atual, bool game_over) {
     char buf[32];
-    
+
     // Limpa o display
     ssd1306_fill(&display, false);
-    
+
     // Desenha o título
     ssd1306_draw_string(&display, "Genius Game", 20, 0);
-    
+
     // Mostra o nível atual
     sprintf(buf, "Nivel: %d", nivel_atual);
     ssd1306_draw_string(&display, buf, 0, 16);
-    
+
     // Mostra o progresso atual
     sprintf(buf, "Progresso: %d/%d", indice_atual, nivel_atual);
     ssd1306_draw_string(&display, buf, 0, 32);
-    
+
     // Se game over, mostra mensagem
     if (game_over) {
-        ssd1306_draw_string(&display, "GAME OVER!", 25, 48);
+        // Usando a nova função para exibir a mensagem centralizada
+        exibir_mensagem_centralizada("GAME OVER!");
     }
-    
+
     // Envia os dados para o display
     ssd1306_send_data(&display);
 }
@@ -134,21 +152,21 @@ int main() {
 
     srand(time(NULL));
     gerar_sequencia();
-    
+
     bool game_over = false;
 
     while (true) {
         // Atualiza o display com o estado inicial
         atualizar_display(nivel, indice_jogador, false);
-        
+
         mostrar_sequencia();
-        
+
         // Aguarda a jogada do jogador
         indice_jogador = 0;
         while (indice_jogador < nivel) {
             // Atualiza o display com o progresso
             atualizar_display(nivel, indice_jogador, false);
-            
+
             if (gpio_get(PINO_BOTAO_B) == 0) {
                 if (!verificar_jogada(1)) { // 1 para azul
                     game_over = true;
@@ -190,11 +208,8 @@ int main() {
         if (indice_jogador == nivel) {
             nivel++;
             if (nivel > MAX_SEQUENCIA) {
-                // Exibe a mensagem de vitória
-                ssd1306_fill(&display, false);
-                ssd1306_draw_string(&display, "PARABENS!", 25, 16);
-                ssd1306_draw_string(&display, "VOCE VENCEU!", 20, 32);
-                ssd1306_send_data(&display);
+                // Exibe a mensagem de vitória usando a função centralizada
+                exibir_mensagem_centralizada("PARABENS");
                 sleep_ms(3000);
 
                 // Reinicia o jogo
@@ -257,13 +272,11 @@ void callback_botao(uint gpio, uint32_t eventos) {
         if (absolute_time_diff_us(ultimo_tempo_botao_b, agora) < ATRASO_DEBOUNCE_MS * 1000)
             return;
         ultimo_tempo_botao_b = agora;
-    }
-    else if (gpio == PINO_BOTAO_A) {
+    } else if (gpio == PINO_BOTAO_A) {
         if (absolute_time_diff_us(ultimo_tempo_botao_a, agora) < ATRASO_DEBOUNCE_MS * 1000)
             return;
         ultimo_tempo_botao_a = agora;
-    }
-    else if (gpio == PINO_BOTAO_JOYSTICK) {
+    } else if (gpio == PINO_BOTAO_JOYSTICK) {
         if (absolute_time_diff_us(ultimo_tempo_botao_joystick, agora) < ATRASO_DEBOUNCE_MS * 1000)
             return;
         ultimo_tempo_botao_joystick = agora;
@@ -289,13 +302,11 @@ void mostrar_sequencia() {
             gpio_put(PINO_LED_VERMELHO, 1);
             sleep_ms(500);
             gpio_put(PINO_LED_VERMELHO, 0);
-        }
-        else if (sequencia[i] == 1) {
+        } else if (sequencia[i] == 1) {
             gpio_put(PINO_LED_AZUL, 1);
             sleep_ms(500);
             gpio_put(PINO_LED_AZUL, 0);
-        }
-        else {
+        } else {
             gpio_put(PINO_LED_VERDE, 1);
             sleep_ms(500);
             gpio_put(PINO_LED_VERDE, 0);
