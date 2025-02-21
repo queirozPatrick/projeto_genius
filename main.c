@@ -35,6 +35,10 @@
 #define NOTE_A4 440
 #define NOTE_A3 220
 #define NOTE_B3 247
+#define NOTE_C5 523
+#define NOTE_E5 659
+#define NOTE_G5 784
+#define NOTE_C6 1047
 
 // Variáveis globais
 volatile bool led_verde_ligado = false;
@@ -66,13 +70,16 @@ void exibir_mensagem_centralizada(char *mensagem);
 void tocar_nota(uint pino_buzzer, uint frequencia, uint duracao_ms);
 void tocar_introducao();
 void tocar_som_erro();
+void tocar_melodia_parabens();
 
 // Função para gerar tom no buzzer
-void tocar_nota(uint pino_buzzer, uint frequencia, uint duracao_ms) {
+void tocar_nota(uint pino_buzzer, uint frequencia, uint duracao_ms)
+{
     uint delay_us = 1000000 / frequencia / 2;
     uint ciclos = (duracao_ms * 1000) / (delay_us * 2);
-    
-    for (uint i = 0; i < ciclos/2; i++) {
+
+    for (uint i = 0; i < ciclos / 2; i++)
+    {
         gpio_put(pino_buzzer, 1);
         sleep_us(delay_us);
         gpio_put(pino_buzzer, 0);
@@ -81,7 +88,8 @@ void tocar_nota(uint pino_buzzer, uint frequencia, uint duracao_ms) {
 }
 
 // Função para tocar o som de erro
-void tocar_som_erro() {
+void tocar_som_erro()
+{
     // Som descendente para indicar erro
     tocar_nota(PINO_BUZZER_A, NOTE_A4, 200);
     sleep_ms(50);
@@ -90,27 +98,41 @@ void tocar_som_erro() {
     tocar_nota(PINO_BUZZER_A, NOTE_B3, 400);
 }
 
+// Função para tocar melodia de "PARABENS"
+void tocar_melodia_parabens()
+{
+    tocar_nota(PINO_BUZZER_A, NOTE_C5, 200); // Dó agudo
+    sleep_ms(50);
+    tocar_nota(PINO_BUZZER_A, NOTE_E5, 200); // Mi agudo
+    sleep_ms(50);
+    tocar_nota(PINO_BUZZER_A, NOTE_G5, 300); // Sol agudo
+    sleep_ms(50);
+    tocar_nota(PINO_BUZZER_A, NOTE_C6, 400); // Dó mais agudo (final alegre)
+}
+
 // Função para tocar a introdução musical
-void tocar_introducao() {
+void tocar_introducao()
+{
     // Configurar os pinos dos buzzers como saída
     gpio_init(PINO_BUZZER_A);
     gpio_init(PINO_BUZZER_B);
     gpio_set_dir(PINO_BUZZER_A, GPIO_OUT);
     gpio_set_dir(PINO_BUZZER_B, GPIO_OUT);
-    
+
     // Tocar notas alternadas nos buzzers
-    tocar_nota(PINO_BUZZER_A, NOTE_C4, 200);  // Dó no buzzer A
-    sleep_ms(100);  // Pequena pausa entre as notas
-    
-    tocar_nota(PINO_BUZZER_B, NOTE_E4, 200);  // Mi no buzzer B
+    tocar_nota(PINO_BUZZER_A, NOTE_C4, 200); // Dó no buzzer A
+    sleep_ms(100);                           // Pequena pausa entre as notas
+
+    tocar_nota(PINO_BUZZER_B, NOTE_E4, 200); // Mi no buzzer B
     sleep_ms(100);
-    
-    tocar_nota(PINO_BUZZER_A, NOTE_G4, 300);  // Sol no buzzer A (um pouco mais longo)
-    sleep_ms(200);  // Pausa final mais longa
+
+    tocar_nota(PINO_BUZZER_A, NOTE_G4, 300); // Sol no buzzer A (um pouco mais longo)
+    sleep_ms(200);                           // Pausa final mais longa
 }
 
 // Função para exibir mensagens centralizadas com borda
-void exibir_mensagem_centralizada(char *mensagem) {
+void exibir_mensagem_centralizada(char *mensagem)
+{
     ssd1306_fill(&display, false);
     desenhar_borda();
     ssd1306_draw_string(&display, mensagem, 25, ALTURA_DISPLAY / 2 - 8);
@@ -118,7 +140,8 @@ void exibir_mensagem_centralizada(char *mensagem) {
 }
 
 // Função para exibir a tela inicial
-void exibir_tela_inicial() {
+void exibir_tela_inicial()
+{
     ssd1306_fill(&display, false);
     desenhar_borda();
     ssd1306_draw_string(&display, "BitColoursLab", 15, ALTURA_DISPLAY / 2 - 8);
@@ -128,7 +151,8 @@ void exibir_tela_inicial() {
 }
 
 // Função para exibir a tela de instruções
-void exibir_tela_instrucoes() {
+void exibir_tela_instrucoes()
+{
     ssd1306_fill(&display, false);
     ssd1306_draw_string(&display, "Como Jogar:", 25, 0);
     ssd1306_draw_string(&display, "A Verde", 10, 16);
@@ -139,15 +163,18 @@ void exibir_tela_instrucoes() {
 }
 
 // Função para atualizar o display
-void atualizar_display(uint8_t nivel_atual, uint8_t indice_atual, bool game_over, bool vez_jogador) {
+void atualizar_display(uint8_t nivel_atual, uint8_t indice_atual, bool game_over, bool vez_jogador)
+{
     ssd1306_fill(&display, false);
     ssd1306_draw_string(&display, "BitColoursLab", 15, 0);
 
-    if (vez_jogador) {
+    if (vez_jogador)
+    {
         ssd1306_draw_string(&display, "SUA VEZ!", 35, ALTURA_DISPLAY / 2 - 8);
     }
 
-    if (game_over) {
+    if (game_over)
+    {
         exibir_mensagem_centralizada("GAME OVER!");
     }
 
@@ -155,30 +182,35 @@ void atualizar_display(uint8_t nivel_atual, uint8_t indice_atual, bool game_over
 }
 
 // Gera uma nova sequência aleatória
-void gerar_sequencia() {
+void gerar_sequencia()
+{
     uint8_t cores_base[3] = {0, 1, 2};
     uint8_t indices[3] = {0, 1, 2};
     uint8_t temp;
     int j;
 
-    for (int i = 2; i > 0; i--) {
+    for (int i = 2; i > 0; i--)
+    {
         j = rand() % (i + 1);
         temp = indices[i];
         indices[i] = indices[j];
         indices[j] = temp;
     }
 
-    for (int i = 0; i < 3; i++) {
+    for (int i = 0; i < 3; i++)
+    {
         sequencia[i] = cores_base[indices[i]];
     }
 
-    for (uint8_t i = 3; i < MAX_SEQUENCIA; i++) {
+    for (uint8_t i = 3; i < MAX_SEQUENCIA; i++)
+    {
         sequencia[i] = rand() % 3;
     }
 }
 
 // Função principal
-int main() {
+int main()
+{
     stdio_init_all();
 
     configurar_gpio();
@@ -193,16 +225,20 @@ int main() {
 
     bool game_over = false;
 
-    while (true) {
+    while (true)
+    {
         atualizar_display(nivel, indice_jogador, false, false);
         mostrar_sequencia();
 
         indice_jogador = 0;
-        while (indice_jogador < nivel) {
+        while (indice_jogador < nivel)
+        {
             atualizar_display(nivel, indice_jogador, false, true);
 
-            if (gpio_get(PINO_BOTAO_B) == 0) {
-                if (!verificar_jogada(1)) {
+            if (gpio_get(PINO_BOTAO_B) == 0)
+            {
+                if (!verificar_jogada(1))
+                {
                     game_over = true;
                     atualizar_display(nivel, indice_jogador, true, false);
                     tocar_som_erro();
@@ -214,8 +250,10 @@ int main() {
                 }
                 sleep_ms(ATRASO_DEBOUNCE_MS);
             }
-            if (gpio_get(PINO_BOTAO_A) == 0) {
-                if (!verificar_jogada(2)) {
+            if (gpio_get(PINO_BOTAO_A) == 0)
+            {
+                if (!verificar_jogada(2))
+                {
                     game_over = true;
                     atualizar_display(nivel, indice_jogador, true, false);
                     tocar_som_erro();
@@ -227,8 +265,10 @@ int main() {
                 }
                 sleep_ms(ATRASO_DEBOUNCE_MS);
             }
-            if (gpio_get(PINO_BOTAO_JOYSTICK) == 0) {
-                if (!verificar_jogada(0)) {
+            if (gpio_get(PINO_BOTAO_JOYSTICK) == 0)
+            {
+                if (!verificar_jogada(0))
+                {
                     game_over = true;
                     atualizar_display(nivel, indice_jogador, true, false);
                     tocar_som_erro();
@@ -242,10 +282,13 @@ int main() {
             }
         }
 
-        if (indice_jogador == nivel) {
+        if (indice_jogador == nivel)
+        {
             nivel++;
-            if (nivel > MAX_SEQUENCIA) {
+            if (nivel > MAX_SEQUENCIA)
+            {
                 exibir_mensagem_centralizada("PARABENS");
+                tocar_melodia_parabens(); // Chamada para tocar a melodia
                 sleep_ms(3000);
                 nivel = 1;
                 gerar_sequencia();
@@ -259,7 +302,8 @@ int main() {
 }
 
 // Configuração dos GPIOs
-void configurar_gpio() {
+void configurar_gpio()
+{
     gpio_init(PINO_BOTAO_B);
     gpio_set_dir(PINO_BOTAO_B, GPIO_IN);
     gpio_pull_up(PINO_BOTAO_B);
@@ -290,7 +334,8 @@ void configurar_gpio() {
 }
 
 // Configuração do I2C
-void configurar_i2c() {
+void configurar_i2c()
+{
     i2c_init(i2c1, 400 * 1000);
     gpio_set_function(PINO_I2C_SDA, GPIO_FUNC_I2C);
     gpio_set_function(PINO_I2C_SCL, GPIO_FUNC_I2C);
@@ -299,24 +344,31 @@ void configurar_i2c() {
 }
 
 // Inicialização do display
-void inicializar_display() {
+void inicializar_display()
+{
     ssd1306_init(&display, LARGURA_DISPLAY, ALTURA_DISPLAY, false, ENDERECO_I2C, i2c1);
     ssd1306_config(&display);
 }
 
 // Callback para os botões
-void callback_botao(uint gpio, uint32_t eventos) {
+void callback_botao(uint gpio, uint32_t eventos)
+{
     absolute_time_t agora = get_absolute_time();
 
-    if (gpio == PINO_BOTAO_B) {
+    if (gpio == PINO_BOTAO_B)
+    {
         if (absolute_time_diff_us(ultimo_tempo_botao_b, agora) < ATRASO_DEBOUNCE_MS * 1000)
             return;
         ultimo_tempo_botao_b = agora;
-    } else if (gpio == PINO_BOTAO_A) {
+    }
+    else if (gpio == PINO_BOTAO_A)
+    {
         if (absolute_time_diff_us(ultimo_tempo_botao_a, agora) < ATRASO_DEBOUNCE_MS * 1000)
             return;
         ultimo_tempo_botao_a = agora;
-    } else if (gpio == PINO_BOTAO_JOYSTICK) {
+    }
+    else if (gpio == PINO_BOTAO_JOYSTICK)
+    {
         if (absolute_time_diff_us(ultimo_tempo_botao_joystick, agora) < ATRASO_DEBOUNCE_MS * 1000)
             return;
         ultimo_tempo_botao_joystick = agora;
@@ -324,22 +376,30 @@ void callback_botao(uint gpio, uint32_t eventos) {
 }
 
 // Desenha a borda no display
-void desenhar_borda() {
+void desenhar_borda()
+{
     ssd1306_rect(&display, 0, 0, LARGURA_DISPLAY, ALTURA_DISPLAY, true, false);
 }
 
 // Mostra a sequência atual
-void mostrar_sequencia() {
-    for (uint8_t i = 0; i < nivel; i++) {
-        if (sequencia[i] == 0) {
+void mostrar_sequencia()
+{
+    for (uint8_t i = 0; i < nivel; i++)
+    {
+        if (sequencia[i] == 0)
+        {
             gpio_put(PINO_LED_VERMELHO, 1);
             sleep_ms(500);
             gpio_put(PINO_LED_VERMELHO, 0);
-        } else if (sequencia[i] == 1) {
+        }
+        else if (sequencia[i] == 1)
+        {
             gpio_put(PINO_LED_AZUL, 1);
             sleep_ms(500);
             gpio_put(PINO_LED_AZUL, 0);
-        } else {
+        }
+        else
+        {
             gpio_put(PINO_LED_VERDE, 1);
             sleep_ms(500);
             gpio_put(PINO_LED_VERDE, 0);
@@ -349,8 +409,10 @@ void mostrar_sequencia() {
 }
 
 // Verifica a jogada do jogador
-bool verificar_jogada(uint8_t cor) {
-    if (sequencia[indice_jogador] == cor) {
+bool verificar_jogada(uint8_t cor)
+{
+    if (sequencia[indice_jogador] == cor)
+    {
         indice_jogador++;
         return true;
     }
