@@ -2,7 +2,6 @@
 #include "pico/stdlib.h"
 #include "hardware/gpio.h"
 #include "hardware/adc.h"
-#include "hardware/pwm.h"
 #include "hardware/i2c.h"
 #include "lib/ssd1306.h"
 #include "lib/font.h"
@@ -25,17 +24,13 @@
 #define ALTURA_DISPLAY 64
 
 #define ATRASO_DEBOUNCE_MS 200
-#define VALOR_MAXIMO_PWM 255
 
 // Variáveis globais
-volatile bool pwm_habilitado = true;
 volatile bool led_verde_ligado = false;
 volatile absolute_time_t ultimo_tempo_botao_b;
 volatile absolute_time_t ultimo_tempo_botao_a;
 
 ssd1306_t display;
-uint fatia_vermelho, fatia_azul;
-uint canal_vermelho, canal_azul;
 
 // Variáveis do jogo Genius
 #define MAX_SEQUENCIA 100
@@ -45,17 +40,33 @@ uint8_t indice_jogador = 0;
 
 // Protótipos de funções
 void configurar_gpio();
-void configurar_pwm();
 void configurar_i2c();
 void inicializar_display();
 void callback_botao(uint gpio, uint32_t eventos);
-void atualizar_leds(uint16_t brilho_vermelho, uint16_t brilho_azul);
 void desenhar_borda();
-void desenhar_quadrado(uint8_t posicao_x, uint8_t posicao_y);
 void gerar_sequencia();
 void mostrar_sequencia();
 bool verificar_jogada(uint8_t cor);
 void atualizar_display(uint8_t nivel_atual, uint8_t indice_atual, bool game_over);
+void exibir_tela_inicial();
+
+// Função para exibir a tela inicial
+void exibir_tela_inicial() {
+    // Limpa o display
+    ssd1306_fill(&display, false);
+    
+    // Desenha a borda
+    desenhar_borda();
+    
+    // Desenha o nome do jogo no centro da tela
+    ssd1306_draw_string(&display, "Genius Game", 25, ALTURA_DISPLAY / 2 - 8);
+    
+    // Envia os dados para o display
+    ssd1306_send_data(&display);
+    
+    // Aguarda 3 segundos
+    sleep_ms(3000);
+}
 
 // Função para atualizar o display
 void atualizar_display(uint8_t nivel_atual, uint8_t indice_atual, bool game_over) {
@@ -65,7 +76,7 @@ void atualizar_display(uint8_t nivel_atual, uint8_t indice_atual, bool game_over
     ssd1306_fill(&display, false);
     
     // Desenha o título
-    ssd1306_draw_string(&display, "GENIUS GAME", 25, 0);
+    ssd1306_draw_string(&display, "Genius Game", 25, 0);
     
     // Mostra o nível atual
     sprintf(buf, "Nivel: %d", nivel_atual);
@@ -89,9 +100,11 @@ int main() {
     stdio_init_all();
 
     configurar_gpio();
-    configurar_pwm();
     configurar_i2c();
     inicializar_display();
+
+    // Exibe a tela inicial
+    exibir_tela_inicial();
 
     srand(time(NULL));
     gerar_sequencia();
@@ -175,23 +188,6 @@ void configurar_gpio() {
     gpio_set_dir(PINO_LED_AZUL, GPIO_OUT);
 }
 
-// Configuração do PWM
-void configurar_pwm() {
-    gpio_set_function(PINO_LED_VERMELHO, GPIO_FUNC_PWM);
-    fatia_vermelho = pwm_gpio_to_slice_num(PINO_LED_VERMELHO);
-    canal_vermelho = pwm_gpio_to_channel(PINO_LED_VERMELHO);
-    pwm_set_wrap(fatia_vermelho, VALOR_MAXIMO_PWM);
-    pwm_set_clkdiv(fatia_vermelho, 125.f);
-    pwm_set_enabled(fatia_vermelho, true);
-
-    gpio_set_function(PINO_LED_AZUL, GPIO_FUNC_PWM);
-    fatia_azul = pwm_gpio_to_slice_num(PINO_LED_AZUL);
-    canal_azul = pwm_gpio_to_channel(PINO_LED_AZUL);
-    pwm_set_wrap(fatia_azul, VALOR_MAXIMO_PWM);
-    pwm_set_clkdiv(fatia_azul, 125.f);
-    pwm_set_enabled(fatia_azul, true);
-}
-
 // Configuração do I2C
 void configurar_i2c() {
     i2c_init(i2c1, 400 * 1000);
@@ -223,22 +219,9 @@ void callback_botao(uint gpio, uint32_t eventos) {
     }
 }
 
-// Atualiza os LEDs PWM
-void atualizar_leds(uint16_t brilho_vermelho, uint16_t brilho_azul) {
-    if (pwm_habilitado) {
-        pwm_set_chan_level(fatia_vermelho, canal_vermelho, brilho_vermelho);
-        pwm_set_chan_level(fatia_azul, canal_azul, brilho_azul);
-    }
-}
-
 // Desenha a borda no display
 void desenhar_borda() {
     ssd1306_rect(&display, 0, 0, LARGURA_DISPLAY, ALTURA_DISPLAY, true, false);
-}
-
-// Desenha o quadrado móvel no display
-void desenhar_quadrado(uint8_t posicao_x, uint8_t posicao_y) {
-    ssd1306_rect(&display, posicao_y, posicao_x, 8, 8, true, true);
 }
 
 // Gera uma nova sequência aleatória
