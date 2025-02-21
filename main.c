@@ -49,7 +49,7 @@ void desenhar_borda();
 void gerar_sequencia();
 void mostrar_sequencia();
 bool verificar_jogada(uint8_t cor);
-void atualizar_display(uint8_t nivel_atual, uint8_t indice_atual, bool game_over);
+void atualizar_display(uint8_t nivel_atual, uint8_t indice_atual, bool game_over, bool vez_jogador); // Modificado
 void exibir_tela_inicial();
 void exibir_tela_instrucoes(); // Nova função para exibir as instruções
 void exibir_mensagem_centralizada(char *mensagem); // Nova função para mensagens centralizadas
@@ -108,33 +108,35 @@ void exibir_tela_instrucoes() {
     sleep_ms(8000);
 }
 
-// Função para atualizar o display
-void atualizar_display(uint8_t nivel_atual, uint8_t indice_atual, bool game_over) {
+// Função para atualizar o display - Versão Simplificada e Divertida
+void atualizar_display(uint8_t nivel_atual, uint8_t indice_atual, bool game_over, bool vez_jogador) {
     char buf[32];
 
     // Limpa o display
     ssd1306_fill(&display, false);
 
-    // Desenha o título
+    // Desenha o título (opcional, pode remover se quiser ainda mais simples)
     ssd1306_draw_string(&display, "Genius Game", 20, 0);
 
-    // Mostra o nível atual
-    sprintf(buf, "Nivel: %d", nivel_atual);
-    ssd1306_draw_string(&display, buf, 0, 16);
+    // Mensagem "SUA VEZ!" quando for a vez do jogador
+    if (vez_jogador) {
+        ssd1306_draw_string(&display, "SUA VEZ!", 35, ALTURA_DISPLAY / 2 - 8); // Centralizado verticalmente
+    } else {
+        // Pode deixar esta área em branco ou mostrar outra mensagem,
+        // ou nada se quiser um display mais limpo durante a sequência do jogo.
+        // Por exemplo, poderia exibir "PRESTE ATENCAO!" brevemente antes da sequencia.
+    }
 
-    // Mostra o progresso atual
-    sprintf(buf, "Progresso: %d/%d", indice_atual, nivel_atual);
-    ssd1306_draw_string(&display, buf, 0, 32);
 
     // Se game over, mostra mensagem
     if (game_over) {
-        // Usando a nova função para exibir a mensagem centralizada
         exibir_mensagem_centralizada("GAME OVER!");
     }
 
     // Envia os dados para o display
     ssd1306_send_data(&display);
 }
+
 
 // Gera uma nova sequência aleatória, garantindo que todas as cores sejam usadas
 void gerar_sequencia() {
@@ -183,21 +185,21 @@ int main() {
     bool game_over = false;
 
     while (true) {
-        // Atualiza o display com o estado inicial
-        atualizar_display(nivel, indice_jogador, false);
+        // Atualiza o display com o estado inicial (sem "SUA VEZ!")
+        atualizar_display(nivel, indice_jogador, false, false); // Adicionado 'false' para vez_jogador
 
         mostrar_sequencia();
 
         // Aguarda a jogada do jogador
         indice_jogador = 0;
         while (indice_jogador < nivel) {
-            // Atualiza o display com o progresso
-            atualizar_display(nivel, indice_jogador, false);
+            // Atualiza o display, mostrando "SUA VEZ!"
+            atualizar_display(nivel, indice_jogador, false, true); // Adicionado 'true' para vez_jogador
 
             if (gpio_get(PINO_BOTAO_B) == 0) {
                 if (!verificar_jogada(1)) { // 1 para azul
                     game_over = true;
-                    atualizar_display(nivel, indice_jogador, true);
+                    atualizar_display(nivel, indice_jogador, true, false); // Game Over não precisa de "SUA VEZ!"
                     sleep_ms(2000);
                     nivel = 1;
                     gerar_sequencia();
@@ -209,7 +211,7 @@ int main() {
             if (gpio_get(PINO_BOTAO_A) == 0) {
                 if (!verificar_jogada(2)) { // 2 para verde
                     game_over = true;
-                    atualizar_display(nivel, indice_jogador, true);
+                    atualizar_display(nivel, indice_jogador, true, false); // Game Over não precisa de "SUA VEZ!"
                     sleep_ms(2000);
                     nivel = 1;
                     gerar_sequencia();
@@ -221,7 +223,7 @@ int main() {
             if (gpio_get(PINO_BOTAO_JOYSTICK) == 0) {
                 if (!verificar_jogada(0)) { // 0 para vermelho
                     game_over = true;
-                    atualizar_display(nivel, indice_jogador, true);
+                    atualizar_display(nivel, indice_jogador, true, false); // Game Over não precisa de "SUA VEZ!"
                     sleep_ms(2000);
                     nivel = 1;
                     gerar_sequencia();
