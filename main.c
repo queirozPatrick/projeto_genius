@@ -35,7 +35,7 @@ volatile absolute_time_t ultimo_tempo_botao_joystick;
 ssd1306_t display;
 
 // Variáveis do jogo Genius
-#define MAX_SEQUENCIA 100
+#define MAX_SEQUENCIA 6 // Sequência máxima de 6 cores
 uint8_t sequencia[MAX_SEQUENCIA];
 uint8_t nivel = 1;
 uint8_t indice_jogador = 0;
@@ -166,11 +166,14 @@ int main() {
         if (indice_jogador == nivel) {
             nivel++;
             if (nivel > MAX_SEQUENCIA) {
+                // Exibe a mensagem de vitória
                 ssd1306_fill(&display, false);
                 ssd1306_draw_string(&display, "PARABENS!", 25, 16);
                 ssd1306_draw_string(&display, "VOCE VENCEU!", 20, 32);
                 ssd1306_send_data(&display);
                 sleep_ms(3000);
+
+                // Reinicia o jogo
                 nivel = 1;
                 gerar_sequencia();
             }
