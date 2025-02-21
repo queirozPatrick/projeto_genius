@@ -12,6 +12,8 @@
 #define PINO_LED_VERMELHO 13
 #define PINO_LED_VERDE 11
 #define PINO_LED_AZUL 12
+#define PINO_BUZZER_A 21
+#define PINO_BUZZER_B 10
 
 #define PINO_BOTAO_B 6 // Botão B na GPIO 6
 #define PINO_BOTAO_A 5
@@ -24,7 +26,12 @@
 #define LARGURA_DISPLAY 128
 #define ALTURA_DISPLAY 64
 
-#define ATRASO_DEBOUNCE_MS 200
+#define ATRASO_DEBOUNCE_MS 300
+
+// Definição das notas musicais (frequências em Hz)
+#define NOTE_C4 262
+#define NOTE_E4 330
+#define NOTE_G4 392
 
 // Variáveis globais
 volatile bool led_verde_ligado = false;
@@ -49,103 +56,96 @@ void desenhar_borda();
 void gerar_sequencia();
 void mostrar_sequencia();
 bool verificar_jogada(uint8_t cor);
-void atualizar_display(uint8_t nivel_atual, uint8_t indice_atual, bool game_over, bool vez_jogador); // Modificado
+void atualizar_display(uint8_t nivel_atual, uint8_t indice_atual, bool game_over, bool vez_jogador);
 void exibir_tela_inicial();
-void exibir_tela_instrucoes(); // Nova função para exibir as instruções
-void exibir_mensagem_centralizada(char *mensagem); // Nova função para mensagens centralizadas
+void exibir_tela_instrucoes();
+void exibir_mensagem_centralizada(char *mensagem);
+void tocar_nota(uint pino_buzzer, uint frequencia, uint duracao_ms);
+void tocar_introducao();
+
+// Função para gerar tom no buzzer
+void tocar_nota(uint pino_buzzer, uint frequencia, uint duracao_ms) {
+    uint delay_us = 1000000 / frequencia / 2;
+    uint ciclos = (duracao_ms * 1000) / (delay_us * 2);
+    
+    for (uint i = 0; i < ciclos; i++) {
+        gpio_put(pino_buzzer, 1);
+        sleep_us(delay_us);
+        gpio_put(pino_buzzer, 0);
+        sleep_us(delay_us);
+    }
+}
+
+// Função para tocar a introdução musical
+void tocar_introducao() {
+    // Configurar os pinos dos buzzers como saída
+    gpio_init(PINO_BUZZER_A);
+    gpio_init(PINO_BUZZER_B);
+    gpio_set_dir(PINO_BUZZER_A, GPIO_OUT);
+    gpio_set_dir(PINO_BUZZER_B, GPIO_OUT);
+    
+    // Tocar notas alternadas nos buzzers
+    tocar_nota(PINO_BUZZER_A, NOTE_C4, 200);  // Dó no buzzer A
+    sleep_ms(100);  // Pequena pausa entre as notas
+    
+    tocar_nota(PINO_BUZZER_B, NOTE_E4, 200);  // Mi no buzzer B
+    sleep_ms(100);
+    
+    tocar_nota(PINO_BUZZER_A, NOTE_G4, 300);  // Sol no buzzer A (um pouco mais longo)
+    sleep_ms(200);  // Pausa final mais longa
+}
 
 // Função para exibir mensagens centralizadas com borda
 void exibir_mensagem_centralizada(char *mensagem) {
-    // Limpa o display
     ssd1306_fill(&display, false);
-
-    // Desenha a borda
     desenhar_borda();
-
-    // Desenha a mensagem no centro da tela
     ssd1306_draw_string(&display, mensagem, 25, ALTURA_DISPLAY / 2 - 8);
-
-    // Envia os dados para o display
     ssd1306_send_data(&display);
 }
 
-
 // Função para exibir a tela inicial
 void exibir_tela_inicial() {
-    // Limpa o display
     ssd1306_fill(&display, false);
-
-    // Desenha a borda
     desenhar_borda();
-
-    // Desenha o nome do jogo no centro da tela
-    ssd1306_draw_string(&display, "Genius Game", 25, ALTURA_DISPLAY / 2 - 8);
-
-    // Envia os dados para o display
+    ssd1306_draw_string(&display, "BitColoursLab", 15, ALTURA_DISPLAY / 2 - 8);
     ssd1306_send_data(&display);
-
-    // Aguarda 3 segundos
     sleep_ms(3000);
 }
 
 // Função para exibir a tela de instruções
 void exibir_tela_instrucoes() {
-    // Limpa o display
     ssd1306_fill(&display, false);
-
-    // Desenha o título
     ssd1306_draw_string(&display, "Como Jogar:", 25, 0);
-
-    // Desenha as instruções
     ssd1306_draw_string(&display, "A Verde", 10, 16);
     ssd1306_draw_string(&display, "B Azul", 10, 32);
     ssd1306_draw_string(&display, "JoyPress Red", 10, 48);
-
-    // Envia os dados para o display
     ssd1306_send_data(&display);
-
-    // Aguarda 5 segundos
-    sleep_ms(8000);
+    sleep_ms(1000);
 }
 
-// Função para atualizar o display - Versão Simplificada e Divertida
+// Função para atualizar o display
 void atualizar_display(uint8_t nivel_atual, uint8_t indice_atual, bool game_over, bool vez_jogador) {
-    char buf[32];
-
-    // Limpa o display
     ssd1306_fill(&display, false);
+    ssd1306_draw_string(&display, "BitColoursLab", 15, 0);
 
-    // Desenha o título (opcional, pode remover se quiser ainda mais simples)
-    ssd1306_draw_string(&display, "Genius Game", 20, 0);
-
-    // Mensagem "SUA VEZ!" quando for a vez do jogador
     if (vez_jogador) {
-        ssd1306_draw_string(&display, "SUA VEZ!", 35, ALTURA_DISPLAY / 2 - 8); // Centralizado verticalmente
-    } else {
-        // Pode deixar esta área em branco ou mostrar outra mensagem,
-        // ou nada se quiser um display mais limpo durante a sequência do jogo.
-        // Por exemplo, poderia exibir "PRESTE ATENCAO!" brevemente antes da sequencia.
+        ssd1306_draw_string(&display, "SUA VEZ!", 35, ALTURA_DISPLAY / 2 - 8);
     }
 
-
-    // Se game over, mostra mensagem
     if (game_over) {
         exibir_mensagem_centralizada("GAME OVER!");
     }
 
-    // Envia os dados para o display
     ssd1306_send_data(&display);
 }
 
-
-// Gera uma nova sequência aleatória, garantindo que todas as cores sejam usadas
+// Gera uma nova sequência aleatória
 void gerar_sequencia() {
-    uint8_t cores_base[3] = {0, 1, 2}; // Representa vermelho, azul, verde
-    uint8_t indices[3] = {0, 1, 2}; // Índices para embaralhar as cores base
+    uint8_t cores_base[3] = {0, 1, 2};
+    uint8_t indices[3] = {0, 1, 2};
     uint8_t temp;
     int j;
 
-    // Embaralha os índices para posicionar aleatoriamente as cores base nas primeiras posições da sequência
     for (int i = 2; i > 0; i--) {
         j = rand() % (i + 1);
         temp = indices[i];
@@ -153,17 +153,14 @@ void gerar_sequencia() {
         indices[j] = temp;
     }
 
-    // Inicializa as primeiras três posições da sequência com as três cores, em ordem aleatória
     for (int i = 0; i < 3; i++) {
         sequencia[i] = cores_base[indices[i]];
     }
 
-    // Completa o restante da sequência com cores aleatórias (se MAX_SEQUENCIA for maior que 3)
     for (uint8_t i = 3; i < MAX_SEQUENCIA; i++) {
-        sequencia[i] = rand() % 3; // 0 para vermelho, 1 para azul, 2 para verde
+        sequencia[i] = rand() % 3;
     }
 }
-
 
 // Função principal
 int main() {
@@ -173,10 +170,8 @@ int main() {
     configurar_i2c();
     inicializar_display();
 
-    // Exibe a tela inicial
     exibir_tela_inicial();
-
-    // Exibe a tela de instruções
+    tocar_introducao();
     exibir_tela_instrucoes();
 
     srand(time(NULL));
@@ -185,21 +180,17 @@ int main() {
     bool game_over = false;
 
     while (true) {
-        // Atualiza o display com o estado inicial (sem "SUA VEZ!")
-        atualizar_display(nivel, indice_jogador, false, false); // Adicionado 'false' para vez_jogador
-
+        atualizar_display(nivel, indice_jogador, false, false);
         mostrar_sequencia();
 
-        // Aguarda a jogada do jogador
         indice_jogador = 0;
         while (indice_jogador < nivel) {
-            // Atualiza o display, mostrando "SUA VEZ!"
-            atualizar_display(nivel, indice_jogador, false, true); // Adicionado 'true' para vez_jogador
+            atualizar_display(nivel, indice_jogador, false, true);
 
             if (gpio_get(PINO_BOTAO_B) == 0) {
-                if (!verificar_jogada(1)) { // 1 para azul
+                if (!verificar_jogada(1)) {
                     game_over = true;
-                    atualizar_display(nivel, indice_jogador, true, false); // Game Over não precisa de "SUA VEZ!"
+                    atualizar_display(nivel, indice_jogador, true, false);
                     sleep_ms(2000);
                     nivel = 1;
                     gerar_sequencia();
@@ -209,9 +200,9 @@ int main() {
                 sleep_ms(ATRASO_DEBOUNCE_MS);
             }
             if (gpio_get(PINO_BOTAO_A) == 0) {
-                if (!verificar_jogada(2)) { // 2 para verde
+                if (!verificar_jogada(2)) {
                     game_over = true;
-                    atualizar_display(nivel, indice_jogador, true, false); // Game Over não precisa de "SUA VEZ!"
+                    atualizar_display(nivel, indice_jogador, true, false);
                     sleep_ms(2000);
                     nivel = 1;
                     gerar_sequencia();
@@ -221,9 +212,9 @@ int main() {
                 sleep_ms(ATRASO_DEBOUNCE_MS);
             }
             if (gpio_get(PINO_BOTAO_JOYSTICK) == 0) {
-                if (!verificar_jogada(0)) { // 0 para vermelho
+                if (!verificar_jogada(0)) {
                     game_over = true;
-                    atualizar_display(nivel, indice_jogador, true, false); // Game Over não precisa de "SUA VEZ!"
+                    atualizar_display(nivel, indice_jogador, true, false);
                     sleep_ms(2000);
                     nivel = 1;
                     gerar_sequencia();
@@ -237,11 +228,8 @@ int main() {
         if (indice_jogador == nivel) {
             nivel++;
             if (nivel > MAX_SEQUENCIA) {
-                // Exibe a mensagem de vitória usando a função centralizada
                 exibir_mensagem_centralizada("PARABENS");
                 sleep_ms(3000);
-
-                // Reinicia o jogo
                 nivel = 1;
                 gerar_sequencia();
             }
@@ -316,7 +304,6 @@ void callback_botao(uint gpio, uint32_t eventos) {
 void desenhar_borda() {
     ssd1306_rect(&display, 0, 0, LARGURA_DISPLAY, ALTURA_DISPLAY, true, false);
 }
-
 
 // Mostra a sequência atual
 void mostrar_sequencia() {
