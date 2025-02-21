@@ -68,7 +68,7 @@ void tocar_nota(uint pino_buzzer, uint frequencia, uint duracao_ms) {
     uint delay_us = 1000000 / frequencia / 2;
     uint ciclos = (duracao_ms * 1000) / (delay_us * 2);
     
-    for (uint i = 0; i < ciclos; i++) {
+    for (uint i = 0; i < ciclos/2; i++) {
         gpio_put(pino_buzzer, 1);
         sleep_us(delay_us);
         gpio_put(pino_buzzer, 0);
@@ -109,6 +109,7 @@ void exibir_tela_inicial() {
     desenhar_borda();
     ssd1306_draw_string(&display, "BitColoursLab", 15, ALTURA_DISPLAY / 2 - 8);
     ssd1306_send_data(&display);
+    tocar_introducao();
     sleep_ms(3000);
 }
 
@@ -120,7 +121,7 @@ void exibir_tela_instrucoes() {
     ssd1306_draw_string(&display, "B Azul", 10, 32);
     ssd1306_draw_string(&display, "JoyPress Red", 10, 48);
     ssd1306_send_data(&display);
-    sleep_ms(1000);
+    sleep_ms(8000);
 }
 
 // Função para atualizar o display
@@ -171,7 +172,6 @@ int main() {
     inicializar_display();
 
     exibir_tela_inicial();
-    tocar_introducao();
     exibir_tela_instrucoes();
 
     srand(time(NULL));
