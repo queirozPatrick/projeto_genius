@@ -32,6 +32,9 @@
 #define NOTE_C4 262
 #define NOTE_E4 330
 #define NOTE_G4 392
+#define NOTE_A4 440
+#define NOTE_A3 220
+#define NOTE_B3 247
 
 // Variáveis globais
 volatile bool led_verde_ligado = false;
@@ -62,6 +65,7 @@ void exibir_tela_instrucoes();
 void exibir_mensagem_centralizada(char *mensagem);
 void tocar_nota(uint pino_buzzer, uint frequencia, uint duracao_ms);
 void tocar_introducao();
+void tocar_som_erro();
 
 // Função para gerar tom no buzzer
 void tocar_nota(uint pino_buzzer, uint frequencia, uint duracao_ms) {
@@ -74,6 +78,16 @@ void tocar_nota(uint pino_buzzer, uint frequencia, uint duracao_ms) {
         gpio_put(pino_buzzer, 0);
         sleep_us(delay_us);
     }
+}
+
+// Função para tocar o som de erro
+void tocar_som_erro() {
+    // Som descendente para indicar erro
+    tocar_nota(PINO_BUZZER_A, NOTE_A4, 200);
+    sleep_ms(50);
+    tocar_nota(PINO_BUZZER_B, NOTE_A3, 300);
+    sleep_ms(50);
+    tocar_nota(PINO_BUZZER_A, NOTE_B3, 400);
 }
 
 // Função para tocar a introdução musical
@@ -191,6 +205,7 @@ int main() {
                 if (!verificar_jogada(1)) {
                     game_over = true;
                     atualizar_display(nivel, indice_jogador, true, false);
+                    tocar_som_erro();
                     sleep_ms(2000);
                     nivel = 1;
                     gerar_sequencia();
@@ -203,6 +218,7 @@ int main() {
                 if (!verificar_jogada(2)) {
                     game_over = true;
                     atualizar_display(nivel, indice_jogador, true, false);
+                    tocar_som_erro();
                     sleep_ms(2000);
                     nivel = 1;
                     gerar_sequencia();
@@ -215,6 +231,7 @@ int main() {
                 if (!verificar_jogada(0)) {
                     game_over = true;
                     atualizar_display(nivel, indice_jogador, true, false);
+                    tocar_som_erro();
                     sleep_ms(2000);
                     nivel = 1;
                     gerar_sequencia();
@@ -264,6 +281,12 @@ void configurar_gpio() {
     gpio_set_dir(PINO_LED_VERDE, GPIO_OUT);
     gpio_init(PINO_LED_AZUL);
     gpio_set_dir(PINO_LED_AZUL, GPIO_OUT);
+
+    // Inicialização dos buzzers
+    gpio_init(PINO_BUZZER_A);
+    gpio_init(PINO_BUZZER_B);
+    gpio_set_dir(PINO_BUZZER_A, GPIO_OUT);
+    gpio_set_dir(PINO_BUZZER_B, GPIO_OUT);
 }
 
 // Configuração do I2C
