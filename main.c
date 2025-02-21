@@ -136,6 +136,33 @@ void atualizar_display(uint8_t nivel_atual, uint8_t indice_atual, bool game_over
     ssd1306_send_data(&display);
 }
 
+// Gera uma nova sequência aleatória, garantindo que todas as cores sejam usadas
+void gerar_sequencia() {
+    uint8_t cores_base[3] = {0, 1, 2}; // Representa vermelho, azul, verde
+    uint8_t indices[3] = {0, 1, 2}; // Índices para embaralhar as cores base
+    uint8_t temp;
+    int j;
+
+    // Embaralha os índices para posicionar aleatoriamente as cores base nas primeiras posições da sequência
+    for (int i = 2; i > 0; i--) {
+        j = rand() % (i + 1);
+        temp = indices[i];
+        indices[i] = indices[j];
+        indices[j] = temp;
+    }
+
+    // Inicializa as primeiras três posições da sequência com as três cores, em ordem aleatória
+    for (int i = 0; i < 3; i++) {
+        sequencia[i] = cores_base[indices[i]];
+    }
+
+    // Completa o restante da sequência com cores aleatórias (se MAX_SEQUENCIA for maior que 3)
+    for (uint8_t i = 3; i < MAX_SEQUENCIA; i++) {
+        sequencia[i] = rand() % 3; // 0 para vermelho, 1 para azul, 2 para verde
+    }
+}
+
+
 // Função principal
 int main() {
     stdio_init_all();
@@ -288,12 +315,6 @@ void desenhar_borda() {
     ssd1306_rect(&display, 0, 0, LARGURA_DISPLAY, ALTURA_DISPLAY, true, false);
 }
 
-// Gera uma nova sequência aleatória
-void gerar_sequencia() {
-    for (uint8_t i = 0; i < MAX_SEQUENCIA; i++) {
-        sequencia[i] = rand() % 3; // 0 para vermelho, 1 para azul, 2 para verde
-    }
-}
 
 // Mostra a sequência atual
 void mostrar_sequencia() {
