@@ -76,7 +76,7 @@ void atualizar_display(uint8_t nivel_atual, uint8_t indice_atual, bool game_over
     ssd1306_fill(&display, false);
     
     // Desenha o título
-    ssd1306_draw_string(&display, "Genius Game", 25, 0);
+    ssd1306_draw_string(&display, "Genius Game", 20, 0);
     
     // Mostra o nível atual
     sprintf(buf, "Nivel: %d", nivel_atual);
