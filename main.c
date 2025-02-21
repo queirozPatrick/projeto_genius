@@ -15,6 +15,7 @@
 
 #define PINO_BOTAO_B 6 // Botão B na GPIO 6
 #define PINO_BOTAO_A 5
+#define PINO_BOTAO_JOYSTICK 22 // Botão do joystick na GPIO 22
 
 #define PINO_I2C_SDA 14
 #define PINO_I2C_SCL 15
@@ -29,6 +30,7 @@
 volatile bool led_verde_ligado = false;
 volatile absolute_time_t ultimo_tempo_botao_b;
 volatile absolute_time_t ultimo_tempo_botao_a;
+volatile absolute_time_t ultimo_tempo_botao_joystick;
 
 ssd1306_t display;
 
@@ -124,7 +126,7 @@ int main() {
             atualizar_display(nivel, indice_jogador, false);
             
             if (gpio_get(PINO_BOTAO_B) == 0) {
-                if (!verificar_jogada(0)) {
+                if (!verificar_jogada(1)) { // 1 para azul
                     game_over = true;
                     atualizar_display(nivel, indice_jogador, true);
                     sleep_ms(2000);
@@ -136,7 +138,19 @@ int main() {
                 sleep_ms(ATRASO_DEBOUNCE_MS);
             }
             if (gpio_get(PINO_BOTAO_A) == 0) {
-                if (!verificar_jogada(1)) {
+                if (!verificar_jogada(2)) { // 2 para verde
+                    game_over = true;
+                    atualizar_display(nivel, indice_jogador, true);
+                    sleep_ms(2000);
+                    nivel = 1;
+                    gerar_sequencia();
+                    game_over = false;
+                    break;
+                }
+                sleep_ms(ATRASO_DEBOUNCE_MS);
+            }
+            if (gpio_get(PINO_BOTAO_JOYSTICK) == 0) {
+                if (!verificar_jogada(0)) { // 0 para vermelho
                     game_over = true;
                     atualizar_display(nivel, indice_jogador, true);
                     sleep_ms(2000);
@@ -180,6 +194,11 @@ void configurar_gpio() {
     gpio_pull_up(PINO_BOTAO_A);
     gpio_set_irq_enabled(PINO_BOTAO_A, GPIO_IRQ_EDGE_FALL, true);
 
+    gpio_init(PINO_BOTAO_JOYSTICK);
+    gpio_set_dir(PINO_BOTAO_JOYSTICK, GPIO_IN);
+    gpio_pull_up(PINO_BOTAO_JOYSTICK);
+    gpio_set_irq_enabled(PINO_BOTAO_JOYSTICK, GPIO_IRQ_EDGE_FALL, true);
+
     gpio_init(PINO_LED_VERMELHO);
     gpio_set_dir(PINO_LED_VERMELHO, GPIO_OUT);
     gpio_init(PINO_LED_VERDE);
@@ -217,6 +236,11 @@ void callback_botao(uint gpio, uint32_t eventos) {
             return;
         ultimo_tempo_botao_a = agora;
     }
+    else if (gpio == PINO_BOTAO_JOYSTICK) {
+        if (absolute_time_diff_us(ultimo_tempo_botao_joystick, agora) < ATRASO_DEBOUNCE_MS * 1000)
+            return;
+        ultimo_tempo_botao_joystick = agora;
+    }
 }
 
 // Desenha a borda no display
@@ -227,7 +251,7 @@ void desenhar_borda() {
 // Gera uma nova sequência aleatória
 void gerar_sequencia() {
     for (uint8_t i = 0; i < MAX_SEQUENCIA; i++) {
-        sequencia[i] = rand() % 2; // 0 para vermelho, 1 para verde
+        sequencia[i] = rand() % 3; // 0 para vermelho, 1 para azul, 2 para verde
     }
 }
 
@@ -238,6 +262,11 @@ void mostrar_sequencia() {
             gpio_put(PINO_LED_VERMELHO, 1);
             sleep_ms(500);
             gpio_put(PINO_LED_VERMELHO, 0);
+        }
+        else if (sequencia[i] == 1) {
+            gpio_put(PINO_LED_AZUL, 1);
+            sleep_ms(500);
+            gpio_put(PINO_LED_AZUL, 0);
         }
         else {
             gpio_put(PINO_LED_VERDE, 1);
