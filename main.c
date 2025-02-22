@@ -66,6 +66,7 @@ bool verificar_jogada(uint8_t cor);
 void atualizar_display(uint8_t nivel_atual, uint8_t indice_atual, bool game_over, bool vez_jogador);
 void exibir_tela_inicial();
 void exibir_tela_instrucoes();
+void exibir_segunda_tela_instrucoes();
 void exibir_mensagem_centralizada(char *mensagem);
 void tocar_nota(uint pino_buzzer, uint frequencia, uint duracao_ms);
 void tocar_introducao();
@@ -120,13 +121,13 @@ void tocar_introducao()
     gpio_set_dir(PINO_BUZZER_B, GPIO_OUT);
 
     // Tocar notas alternadas nos buzzers
-    tocar_nota(PINO_BUZZER_A, NOTE_C4, 200); // Dó no buzzer A
+  //  tocar_nota(PINO_BUZZER_A, NOTE_C4, 200); // Dó no buzzer A
     sleep_ms(100);                           // Pequena pausa entre as notas
 
-    tocar_nota(PINO_BUZZER_B, NOTE_E4, 200); // Mi no buzzer B
+  //  tocar_nota(PINO_BUZZER_B, NOTE_E4, 200); // Mi no buzzer B
     sleep_ms(100);
 
-    tocar_nota(PINO_BUZZER_A, NOTE_G4, 300); // Sol no buzzer A (um pouco mais longo)
+ //   tocar_nota(PINO_BUZZER_A, NOTE_G4, 300); // Sol no buzzer A (um pouco mais longo)
     sleep_ms(200);                           // Pausa final mais longa
 }
 
@@ -154,9 +155,20 @@ void exibir_tela_inicial()
 void exibir_tela_instrucoes()
 {
     ssd1306_fill(&display, false);
-    ssd1306_draw_string(&display, "Como Jogar:", 25, 0);
-    ssd1306_draw_string(&display, "A Verde", 10, 16);
-    ssd1306_draw_string(&display, "B Azul", 10, 32);
+    ssd1306_draw_string(&display, "Reproduza as", 20, 16);
+    ssd1306_draw_string(&display, "cores exibidas", 10, 32);
+    ssd1306_draw_string(&display, "no LED", 40, 48);
+    ssd1306_send_data(&display);
+    sleep_ms(8000);
+}
+
+// Função para exibir a segunda tela de instruções
+void exibir_segunda_tela_instrucoes()
+{
+    ssd1306_fill(&display, false);
+    ssd1306_draw_string(&display, "Pressione", 25, 0);
+    ssd1306_draw_string(&display, "A Green", 10, 16);
+    ssd1306_draw_string(&display, "B Blue", 10, 32);
     ssd1306_draw_string(&display, "JoyPress Red", 10, 48);
     ssd1306_send_data(&display);
     sleep_ms(8000);
@@ -219,6 +231,7 @@ int main()
 
     exibir_tela_inicial();
     exibir_tela_instrucoes();
+    exibir_segunda_tela_instrucoes();
 
     srand(time(NULL));
     gerar_sequencia();
