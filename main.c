@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include "pico/stdlib.h"
 #include "hardware/gpio.h"
+#include "hardware/pwm.h" // Inclua a biblioteca PWM
 #include "hardware/adc.h"
 #include "hardware/i2c.h"
 #include "lib/ssd1306.h"
@@ -72,6 +73,23 @@ void tocar_nota(uint pino_buzzer, uint frequencia, uint duracao_ms);
 void tocar_introducao();
 void tocar_som_erro();
 void tocar_melodia_parabens();
+void configurar_pwm(uint pin);
+void ajustar_brilho_led(uint pin, uint8_t brilho);
+
+// Função para configurar o PWM em um pino
+void configurar_pwm(uint pin) {
+    gpio_set_function(pin, GPIO_FUNC_PWM); // Configura o pino para usar PWM
+    uint slice_num = pwm_gpio_to_slice_num(pin); // Obtém o slice do PWM
+    pwm_set_wrap(slice_num, 255); // Define o valor máximo do PWM (8 bits)
+    pwm_set_chan_level(slice_num, pwm_gpio_to_channel(pin), 0); // Inicia com duty cycle 0 (LED desligado)
+    pwm_set_enabled(slice_num, true); // Habilita o PWM
+}
+
+// Função para ajustar o brilho do LED
+void ajustar_brilho_led(uint pin, uint8_t brilho) {
+    uint slice_num = pwm_gpio_to_slice_num(pin);
+    pwm_set_chan_level(slice_num, pwm_gpio_to_channel(pin), brilho);
+}
 
 // Função para gerar tom no buzzer
 void tocar_nota(uint pino_buzzer, uint frequencia, uint duracao_ms)
@@ -243,6 +261,11 @@ int main()
     configurar_i2c();
     inicializar_display();
 
+    // Configurar PWM para os LEDs
+    configurar_pwm(PINO_LED_VERMELHO);
+    configurar_pwm(PINO_LED_VERDE);
+    configurar_pwm(PINO_LED_AZUL);
+
     exibir_tela_inicial();
     exibir_tela_instrucoes();
     exibir_segunda_tela_instrucoes();
@@ -345,12 +368,10 @@ void configurar_gpio()
     gpio_pull_up(PINO_BOTAO_JOYSTICK);
     gpio_set_irq_enabled(PINO_BOTAO_JOYSTICK, GPIO_IRQ_EDGE_FALL, true);
 
-    gpio_init(PINO_LED_VERMELHO);
-    gpio_set_dir(PINO_LED_VERMELHO, GPIO_OUT);
-    gpio_init(PINO_LED_VERDE);
-    gpio_set_dir(PINO_LED_VERDE, GPIO_OUT);
-    gpio_init(PINO_LED_AZUL);
-    gpio_set_dir(PINO_LED_AZUL, GPIO_OUT);
+    // Configura os pinos dos LEDs para PWM
+    configurar_pwm(PINO_LED_VERMELHO);
+    configurar_pwm(PINO_LED_VERDE);
+    configurar_pwm(PINO_LED_AZUL);
 
     // Inicialização dos buzzers
     gpio_init(PINO_BUZZER_A);
@@ -414,21 +435,21 @@ void mostrar_sequencia()
     {
         if (sequencia[i] == 0)
         {
-            gpio_put(PINO_LED_VERMELHO, 1);
+            ajustar_brilho_led(PINO_LED_VERMELHO, 76); // 30% de brilho
             sleep_ms(500);
-            gpio_put(PINO_LED_VERMELHO, 0);
+            ajustar_brilho_led(PINO_LED_VERMELHO, 0); // Desliga o LED
         }
         else if (sequencia[i] == 1)
         {
-            gpio_put(PINO_LED_AZUL, 1);
+            ajustar_brilho_led(PINO_LED_AZUL, 76); // 30% de brilho
             sleep_ms(500);
-            gpio_put(PINO_LED_AZUL, 0);
+            ajustar_brilho_led(PINO_LED_AZUL, 0); // Desliga o LED
         }
         else
         {
-            gpio_put(PINO_LED_VERDE, 1);
+            ajustar_brilho_led(PINO_LED_VERDE, 76); // 30% de brilho
             sleep_ms(500);
-            gpio_put(PINO_LED_VERDE, 0);
+            ajustar_brilho_led(PINO_LED_VERDE, 0); // Desliga o LED
         }
         sleep_ms(200);
     }
