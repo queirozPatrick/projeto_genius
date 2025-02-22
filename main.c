@@ -201,6 +201,7 @@ void gerar_sequencia()
     uint8_t temp;
     int j;
 
+    // Embaralhar as cores iniciais
     for (int i = 2; i > 0; i--)
     {
         j = rand() % (i + 1);
@@ -214,6 +215,7 @@ void gerar_sequencia()
         sequencia[i] = cores_base[indices[i]];
     }
 
+    // Gerar o restante da sequência de forma aleatória
     for (uint8_t i = 3; i < MAX_SEQUENCIA; i++)
     {
         sequencia[i] = rand() % 3;
@@ -225,6 +227,18 @@ int main()
 {
     stdio_init_all();
 
+    // Inicializar o ADC para gerar uma semente mais aleatória
+    adc_init();
+    adc_gpio_init(26);  // Usar o pino GP26 (ADC0) como entrada flutuante
+    adc_select_input(0);
+
+    // Ler um valor aleatório do ADC
+    uint16_t random_adc_value = adc_read();
+
+    // Combinar o tempo atual com o valor do ADC para a semente
+    absolute_time_t now = get_absolute_time();
+    srand(to_us_since_boot(now) + random_adc_value);
+
     configurar_gpio();
     configurar_i2c();
     inicializar_display();
@@ -233,7 +247,6 @@ int main()
     exibir_tela_instrucoes();
     exibir_segunda_tela_instrucoes();
 
-    srand(time(NULL));
     gerar_sequencia();
 
     bool game_over = false;
