@@ -121,13 +121,13 @@ void tocar_introducao()
     gpio_set_dir(PINO_BUZZER_B, GPIO_OUT);
 
     // Tocar notas alternadas nos buzzers
-  //  tocar_nota(PINO_BUZZER_A, NOTE_C4, 200); // Dó no buzzer A
+    tocar_nota(PINO_BUZZER_A, NOTE_C4, 200); // Dó no buzzer A
     sleep_ms(100);                           // Pequena pausa entre as notas
 
-  //  tocar_nota(PINO_BUZZER_B, NOTE_E4, 200); // Mi no buzzer B
+    tocar_nota(PINO_BUZZER_B, NOTE_E4, 200); // Mi no buzzer B
     sleep_ms(100);
 
- //   tocar_nota(PINO_BUZZER_A, NOTE_G4, 300); // Sol no buzzer A (um pouco mais longo)
+    tocar_nota(PINO_BUZZER_A, NOTE_G4, 300); // Sol no buzzer A (um pouco mais longo)
     sleep_ms(200);                           // Pausa final mais longa
 }
 
