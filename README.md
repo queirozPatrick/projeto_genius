@@ -1,4 +1,4 @@
-# 🎮 Projeto Final EmbarcaTech: BitColoursLab - Jogo de Memória 
+# 🎮 BitColoursLab - Jogo de Memória 
 
 ## 📝 Apresentação do Projeto
 O *BitColoursLab* é um jogo de memória desenvolvido como projeto final do curso *EmbarcaTech, promovido pelo **CEPEDI, **SOFTEX* e *HwIT - Hardware Innovation Technologies. O jogo foi projetado para ser executado em um sistema embarcado baseado no microcontrolador **Raspberry Pi Pico, integrado à placa de desenvolvimento **BitDogLab. O objetivo do jogo é desafiar o jogador a memorizar e reproduzir sequências de cores geradas aleatoriamente, com níveis de dificuldade progressivos. O sistema utiliza **💡 LEDs, **🎮 botões, um **🖥 display OLED* e um *🔊 buzzer* para criar uma experiência interativa e imersiva.
