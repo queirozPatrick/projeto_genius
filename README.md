@@ -113,10 +113,12 @@ O projeto foi implementado com sucesso, atendendo a todos os requisitos. O jogo 
 ---
 
 ## 🚀 Documentação do projeto concluido (PDF)
-- 📖 [BitColoursLab](à ser incluido)
+- 📖[U7T_tic370100247_patrickqueiroz.pdf](https://github.com/user-attachments/files/18984453/U7T_tic370100247_patrickqueiroz.pdf)
+
+
 
 ## 🎥 Demonstração do Projeto
-- Vídeo do projeto: [à ser incluido](à ser incluido)
+- Vídeo do projeto: [Youtube](https://www.youtube.com/watch?v=q7mkqUls5VQ)
 
 ---
 ## 📚 Referências
