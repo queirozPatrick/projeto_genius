@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include "pico/stdlib.h"
 #include "hardware/gpio.h"
-#include "hardware/pwm.h" // Inclua a biblioteca PWM
+#include "hardware/pwm.h"
 #include "hardware/adc.h"
 #include "hardware/i2c.h"
 #include "lib/ssd1306.h"
@@ -16,9 +16,9 @@
 #define PINO_BUZZER_A 21
 #define PINO_BUZZER_B 10
 
-#define PINO_BOTAO_B 6 // Botão B na GPIO 6
+#define PINO_BOTAO_B 6
 #define PINO_BOTAO_A 5
-#define PINO_BOTAO_JOYSTICK 22 // Botão do joystick na GPIO 22
+#define PINO_BOTAO_JOYSTICK 22
 
 #define PINO_I2C_SDA 14
 #define PINO_I2C_SCL 15
@@ -337,7 +337,7 @@ int main()
             if (nivel > MAX_SEQUENCIA)
             {
                 exibir_mensagem_centralizada("PARABENS");
-                tocar_melodia_parabens(); // Chamada para tocar a melodia
+                tocar_melodia_parabens();
                 sleep_ms(3000);
                 nivel = 1;
                 gerar_sequencia();
@@ -437,19 +437,19 @@ void mostrar_sequencia()
         {
             ajustar_brilho_led(PINO_LED_VERMELHO, 76); // 30% de brilho
             sleep_ms(500);
-            ajustar_brilho_led(PINO_LED_VERMELHO, 0); // Desliga o LED
+            ajustar_brilho_led(PINO_LED_VERMELHO, 0);
         }
         else if (sequencia[i] == 1)
         {
             ajustar_brilho_led(PINO_LED_AZUL, 76); // 30% de brilho
             sleep_ms(500);
-            ajustar_brilho_led(PINO_LED_AZUL, 0); // Desliga o LED
+            ajustar_brilho_led(PINO_LED_AZUL, 0);
         }
         else
         {
             ajustar_brilho_led(PINO_LED_VERDE, 76); // 30% de brilho
             sleep_ms(500);
-            ajustar_brilho_led(PINO_LED_VERDE, 0); // Desliga o LED
+            ajustar_brilho_led(PINO_LED_VERDE, 0);
         }
         sleep_ms(200);
     }
